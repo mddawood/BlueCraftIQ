@@ -12,12 +12,19 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("public.tenants.id"), index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     first_name = Column(String)
+    middle_name = Column(String, nullable=True)
     last_name = Column(String)
+    mobile = Column(String, nullable=True)  # nullable in DB for safety/backwards compatibility, but validated in API
+    street_address = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    state = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    is_super_admin = Column(Boolean, default=False, nullable=False)
     
     salesforce_id = Column(String, nullable=True) # ID in Salesforce Org
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -28,6 +35,7 @@ class MembershipTier(Base):
     __tablename__ = "membership_tiers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("public.tenants.id"), index=True, nullable=False)
     name = Column(String, nullable=False)
     description = Column(String)
     price = Column(Float, nullable=False)
@@ -40,6 +48,7 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("public.tenants.id"), index=True, nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     tier_id = Column(UUID(as_uuid=True), ForeignKey("membership_tiers.id"), nullable=False)
     

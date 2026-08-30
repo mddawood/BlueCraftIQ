@@ -13,10 +13,21 @@ class TokenPayload(BaseModel):
 class UserBase(BaseModel):
     email: EmailStr
     first_name: Optional[str] = None
+    middle_name: Optional[str] = None
     last_name: Optional[str] = None
+    mobile: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+    first_name: str
+    last_name: str
+    mobile: str
+    street_address: str
+    city: str
+    state: str
 
 class UserResponse(UserBase):
     id: UUID
@@ -27,3 +38,16 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+class TenantSignup(BaseModel):
+    company_name: str
+    subdomain: str
+    email: EmailStr
+    password: str
+    first_name: str
+    last_name: str
+    mobile: str
+    street_address: str
+    city: str
+    state: str
+
