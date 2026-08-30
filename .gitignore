@@ -38,3 +38,9 @@ yarn-error.log*
 # --- System Files ---
 .DS_Store
 Thumbs.db
+
+# --- User Custom Excludes ---
+docs/
+*.db
+*.sqlite
+*.sqlite3

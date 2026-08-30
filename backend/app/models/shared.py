@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from app.db.base_class import Base
@@ -15,6 +15,11 @@ class Tenant(Base):
     name = Column(String, nullable=False)
     subdomain = Column(String, unique=True, index=True, nullable=False)
     schema_name = Column(String, unique=True, nullable=False)
+    
+    # Plan and Status
+    plan = Column(String, default="free", nullable=False) # free, pro, enterprise
+    status = Column(String, default="active", nullable=False) # active, suspended
+    rate_limit_per_minute = Column(Integer, default=100, nullable=False)
     
     # Integrations
     stripe_account_id = Column(String, nullable=True)

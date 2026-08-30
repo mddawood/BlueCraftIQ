@@ -4,6 +4,16 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const url = request.nextUrl
   
+  // Bypass if path already starts with /app (avoids double prefixing)
+  if (url.pathname.startsWith('/app')) {
+    return NextResponse.next()
+  }
+  
+  // Rewrite global /admin to /app/admin to load the super admin dashboard
+  if (url.pathname.startsWith('/admin')) {
+    return NextResponse.rewrite(new URL(`/app/admin${url.pathname.slice(6)}${url.search}`, request.url))
+  }
+  
   // Get hostname (e.g. org1.example.com or org1.localhost:3000)
   const hostname = request.headers.get('host') || ''
   
@@ -18,9 +28,10 @@ export function middleware(request: NextRequest) {
     // Rewrite the URL to the /[tenant] dynamic route
     // e.g. org1.example.com/dashboard -> /app/org1/dashboard
     return NextResponse.rewrite(new URL(`/app/${currentHost}${url.pathname}${url.search}`, request.url))
+  } else {
+    // Default to 'msmc' tenant if accessing the base domain directly (like localhost:3000)
+    return NextResponse.rewrite(new URL(`/app/msmc${url.pathname}${url.search}`, request.url))
   }
-
-  return NextResponse.next()
 }
 
 export const config = {
