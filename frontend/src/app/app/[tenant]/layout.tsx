@@ -13,14 +13,19 @@ export default function TenantLayout({
 }) {
   const pathname = usePathname();
   
-  // Detect if current route is login page (/app/[tenant]) or signup page (/app/[tenant]/signup)
-  const isAuthPage = 
+  // Detect if current route has its own standalone layout (auth & custom dashboard)
+  const isCustomLayoutPage = 
+    pathname === '/' ||
+    pathname === '/signup' ||
+    pathname === '/dashboard' ||
     pathname === `/app/${params.tenant}` || 
     pathname === `/app/${params.tenant}/` ||
     pathname === `/app/${params.tenant}/signup` ||
-    pathname === `/app/${params.tenant}/signup/`;
+    pathname === `/app/${params.tenant}/signup/` ||
+    pathname === `/app/${params.tenant}/dashboard` ||
+    pathname === `/app/${params.tenant}/dashboard/`;
 
-  if (isAuthPage) {
+  if (isCustomLayoutPage) {
     return (
       <div className="min-h-screen bg-emerald-950 text-gray-100 font-sans">
         {children}

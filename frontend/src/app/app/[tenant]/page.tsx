@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mail, Lock, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react';
 
@@ -11,18 +11,58 @@ export default function TenantLoginPage({ params }: { params: { tenant: string }
   const [forgotEmail, setForgotEmail] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('token_type');
+    }
+  }, []);
+
   // Normalize tenant name for UI display
   const tenantDisplayName = params.tenant.toLowerCase() === 'msmc' || params.tenant.toLowerCase() === 'mountsinai'
     ? 'Mount Sinai Muslim Center'
     : `${params.tenant.charAt(0).toUpperCase() + params.tenant.slice(1)} Portal`;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setMessage({ type: 'error', text: 'Please fill in all mandatory fields.' });
       return;
     }
-    setMessage({ type: 'success', text: 'Login request submitted (Backend integration pending).' });
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Tenant-Subdomain': params.tenant
+        },
+        body: new URLSearchParams({
+          username: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setMessage({ type: 'error', text: errorData.detail || 'Login failed. Please check your credentials.' });
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('token_type', data.token_type);
+      
+      setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+      
+      // Redirect to the dashboard
+      setTimeout(() => {
+        const isDirectPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/app');
+        window.location.href = isDirectPath ? `/app/${params.tenant}/dashboard` : `/dashboard`;
+      }, 800);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Connection to server failed. Please try again later.' });
+    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
@@ -162,7 +202,7 @@ export default function TenantLoginPage({ params }: { params: { tenant: string }
                 <p className="text-xs text-emerald-300/60">
                   Don&apos;t have an account?{' '}
                   <Link
-                    href={`/app/${params.tenant}/signup`}
+                    href="/signup"
                     className="font-bold text-amber-500 hover:text-amber-400 transition underline decoration-amber-500/30 underline-offset-4"
                   >
                     Sign up now
