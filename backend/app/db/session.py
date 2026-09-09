@@ -42,22 +42,22 @@ from sqlalchemy.orm import Session
 def set_rls_variables(session, transaction, connection):
     if not engine.url.drivername.startswith("sqlite"):
         # Set statement timeout to 5000ms (5 seconds) to prevent runaway queries
-        connection.execute(text("SET LOCAL statement_timeout = 5000"))
+        connection.execute(text("SELECT set_config('statement_timeout', '5000', true)"))
         
         tenant_id = tenant_id_var.get()
         bypass_rls = bypass_rls_var.get()
         
         if bypass_rls:
-            connection.execute(text("SET LOCAL app.bypass_rls = 'true'"))
+            connection.execute(text("SELECT set_config('app.bypass_rls', 'true', true)"))
         elif tenant_id:
-            connection.execute(text("SET LOCAL app.bypass_rls = 'false'"))
+            connection.execute(text("SELECT set_config('app.bypass_rls', 'false', true)"))
             connection.execute(
-                text("SET LOCAL app.current_tenant_id = :tenant_id"),
+                text("SELECT set_config('app.current_tenant_id', :tenant_id, true)"),
                 {"tenant_id": str(tenant_id)}
             )
         else:
-            connection.execute(text("SET LOCAL app.bypass_rls = 'false'"))
-            connection.execute(text("SET LOCAL app.current_tenant_id = ''"))
+            connection.execute(text("SELECT set_config('app.bypass_rls', 'false', true)"))
+            connection.execute(text("SELECT set_config('app.current_tenant_id', '', true)"))
 
 async def get_db():
     """Dependency to get a standard DB session."""

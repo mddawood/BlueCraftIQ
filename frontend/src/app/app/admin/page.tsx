@@ -76,7 +76,7 @@ export default function SuperAdminDashboard() {
         const profile = await meRes.json();
         setCurrentUser(profile);
 
-        if (!profile.is_super_admin) {
+        if (!profile.is_super_admin && !profile.is_superuser) {
           setAuthError('Access Denied. You do not have super-admin privileges.');
           setLoading(false);
           return;

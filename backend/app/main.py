@@ -115,17 +115,20 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 async def on_startup():
-    # If using SQLite fallback, auto-create tables and seed default tenant
-    if engine.url.drivername.startswith("sqlite"):
-        from app.db.base_class import Base
-        from app.db.session import AsyncSessionLocal
-        from app.models.shared import Tenant
-        from app.models.tenant import User, MembershipTier, Subscription
-        from sqlalchemy.future import select
+    from app.db.base_class import Base
+    from app.db.session import AsyncSessionLocal
+    from app.models.shared import Tenant
+    from app.models.tenant import User, MembershipTier, Subscription
+    from sqlalchemy.future import select
 
+    # Auto-create tables if running on SQLite fallback
+    if engine.url.drivername.startswith("sqlite"):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
             
+    # Seed default tenant and users if missing (bypassing RLS for seed)
+    bypass_rls_token = bypass_rls_var.set(True)
+    try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(select(Tenant).where(Tenant.subdomain == "msmc"))
             tenant = result.scalar_one_or_none()
@@ -169,6 +172,8 @@ async def on_startup():
                 session.add(member)
                 session.add(admin)
                 await session.commit()
+    finally:
+        bypass_rls_var.reset(bypass_rls_token)
 
 @app.get("/health")
 def health_check():

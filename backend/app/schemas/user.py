@@ -33,6 +33,7 @@ class UserResponse(UserBase):
     id: UUID
     is_active: bool
     is_superuser: bool
+    is_super_admin: bool = False
     created_at: datetime
     salesforce_id: Optional[str] = None
 

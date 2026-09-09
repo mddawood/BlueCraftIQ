@@ -40,7 +40,6 @@ yarn-error.log*
 Thumbs.db
 
 # --- User Custom Excludes ---
-docs/
 *.db
 *.sqlite
 *.sqlite3
